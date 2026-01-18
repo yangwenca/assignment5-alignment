@@ -21,19 +21,17 @@ def tokenize_prompt_and_output(
     prompt_ids = tokenizer(prompt_strs)['input_ids']
     output_ids = tokenizer(output_strs)['input_ids']
     input_ids = [prompt + output for (prompt, output) in zip(prompt_ids, output_ids)]
-    max_len = max([len(t) for t in input_ids]) - 1
+    max_len = max([len(t) for t in input_ids])
 
     batch_size = len(prompt_strs)
-    ids = torch.zeros((batch_size, max_len), dtype=torch.long)
-    labels = torch.zeros((batch_size, max_len), dtype=torch.long)
-    response_mask = torch.zeros((batch_size, max_len), dtype=torch.bool)
+    ids = torch.zeros((batch_size, max_len - 1), dtype=torch.long)
+    labels = torch.zeros((batch_size, max_len - 1), dtype=torch.long)
+    response_mask = torch.zeros((batch_size, max_len - 1), dtype=torch.bool)
     for idx, input_id in enumerate(input_ids):
-        diff = max(0, max_len - (len(input_id) - 1))
-        ids[idx] = torch.tensor(input_id[:-1] + [tokenizer.pad_token_id] * diff)
-        # believe the test case is incorrect
-        if len(input_id) <= max_len and input_id[-1] == 0:
-            ids[idx, len(input_id) - 1] = 0
-        labels[idx] = torch.tensor(input_id[1:] + [tokenizer.pad_token_id] * diff)
+        diff = max(0, max_len - len(input_id))
+        total = torch.tensor(input_id + [tokenizer.pad_token_id] * diff)
+        ids[idx] = total[:-1]
+        labels[idx] = total[1:]
         response_mask[idx, len(prompt_ids[idx])-1: len(input_id)-1] = True
 
     return {
