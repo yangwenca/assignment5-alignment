@@ -125,13 +125,23 @@ def evaluate(
     )
 
 
-def eval_data() -> Tuple[List[str], List[str]]:
-    data_path = "/workspace/alignment/data/gsm8k/test.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
+def get_data(data_path: str, prompt_path: str) -> Tuple[List[str], List[str]]:
     samples = load_file(data_path)
     prompts = format_prompt(samples, prompt_path)
     ground_truth = [sample["answer"] for sample in samples]
     return (prompts, ground_truth)
+
+
+def eval_data() -> Tuple[List[str], List[str]]:
+    data_path = "/workspace/alignment/data/gsm8k/test.jsonl"
+    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
+    return get_data(data_path, prompt_path)
+
+
+def train_data() -> Tuple[List[str], List[str]]:
+    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
+    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
+    return get_data(data_path, prompt_path)
 
 
 def main() -> None:
