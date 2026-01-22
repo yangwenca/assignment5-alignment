@@ -1047,7 +1047,7 @@ def r1_zero_reward_fn(response, ground_truth, fast=False):
         }
 
 
-def question_only_reward_fn(response, ground_truth, fast=True):
+def question_only_reward_fn(response, ground_truth, fast=False):
     model_answer = extract_answer(response)
     if model_answer is None:
         # Cannot even parse anything.

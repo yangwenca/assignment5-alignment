@@ -107,6 +107,7 @@ def evaluate(
     output_path: str,
     prompts: List[str],
     ground_truth: List[str],
+    reward_fn: Callable[[str, str], Dict[str, float]] = r1_zero_reward_fn,
 ) -> None:
     # Create a sampling params object, stopping generation on newline.
     sampling_params = SamplingParams(
@@ -117,7 +118,7 @@ def evaluate(
 
     evaluate_vllm(
         vllm_model=model,
-        reward_fn=r1_zero_reward_fn,
+        reward_fn=reward_fn,
         prompts=prompts,
         eval_sampling_params=sampling_params,
         ground_truth=ground_truth,
