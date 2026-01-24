@@ -9,6 +9,7 @@ from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizerBase
 
 from cs336_alignment.baseline import *
+from cs336_alignment.dpo import compute_per_instance_dpo_loss
 from cs336_alignment.grpo import compute_group_normalized_rewards, compute_grpo_clip_loss
 from cs336_alignment.grpo import compute_naive_policy_gradient_loss, compute_policy_gradient_loss
 from cs336_alignment.grpo import grpo_microbatch_train_step, masked_mean
@@ -416,4 +417,5 @@ def run_compute_per_instance_dpo_loss(
     Returns:
         torch.Tensor with the DPO loss for this example.
     """
-    raise NotImplementedError
+    return compute_per_instance_dpo_loss(lm, lm_ref, tokenizer, beta,
+        prompt, response_chosen, response_rejected)

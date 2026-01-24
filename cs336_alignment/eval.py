@@ -10,7 +10,7 @@ from vllm import SamplingParams
 
 
 def parse_sft_prompt(prompts: list[str]) -> list[str]:
-    sft_prompt_path = "/workspace/alignment/cs336_alignment/prompts/alpaca_sft.prompt"
+    sft_prompt_path = "/alignment/cs336_alignment/prompts/alpaca_sft.prompt"
     with open(sft_prompt_path, "r", encoding="utf-8") as f:
         SFT_PROMPT = f.read()
     ans = [SFT_PROMPT.format(
@@ -48,12 +48,11 @@ Most of outputs are able to give correct format.
 """
 
 
-def eval_mmlu():
-    data_path = "/workspace/alignment/data/mmlu/val"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/mmlu.prompt"
-    output_path="/workspace/alignment/data/mmlu_output/"
-    output_file_name = output_path + "mmlu_after.json"
-    model_name = "/workspace/alignment/data/instruction/"
+def eval_mmlu(model_name: str, output_file_name: str):
+    data_path = "/alignment/data/mmlu/val"
+    prompt_path = "/alignment/cs336_alignment/prompts/mmlu.prompt"
+    output_path="/alignment/data/mmlu_output/"
+    output_file_name = output_path + output_file_name
     device = "cuda"
     seed = 42
     gpu_memory_utilization = 0.9
@@ -101,7 +100,7 @@ def eval_mmlu():
     print(f"mmlu data: total is {total}, correct is {correct}, rate is {correct / total * 100}")
 
 
-# eval_mmlu()
+# eval_mmlu("/alignment/data/instruction/", "mmlu_sft.json")
 
 
 """
@@ -144,12 +143,11 @@ But it is not able to answer more questions. Seems like sft is hurting
 """
 
 
-def eval_gsm8k():
-    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/gsm8k.prompt"
-    output_path="/workspace/alignment/data/gsm8k_output/"
-    output_file_name = output_path + "gsm8k_after.json"
-    model_name = "/workspace/alignment/data/instruction/"
+def eval_gsm8k(model_name: str, output_file_name: str):
+    data_path = "/alignment/data/gsm8k/train.jsonl"
+    prompt_path = "/alignment/cs336_alignment/prompts/gsm8k.prompt"
+    output_path="/alignment/data/gsm8k_output/"
+    output_file_name = output_path + output_file_name
     device = "cuda"
     seed = 42
     gpu_memory_utilization = 0.9
@@ -198,7 +196,7 @@ def eval_gsm8k():
     print(f"gsm8k data: total is {total}, correct is {correct}, rate is {correct / total * 100}")
 
 
-# eval_gsm8k()
+# eval_gsm8k("/alignment/data/instruction/", "gsm8k_sft.json")
 
 
 """
@@ -220,12 +218,11 @@ can't run alpaca_eval successfully
 """
 
 
-def eval_alpaca():
-    data_path = "/workspace/alignment/data/alpaca_eval/alpaca_eval.jsonl"
-    output_path="/workspace/alignment/data/alpaca_output/"
+def eval_alpaca(model_name: str, output_file_name: str):
+    data_path = "/alignment/data/alpaca_eval/alpaca_eval.jsonl"
+    output_path="/alignment/data/alpaca_output/"
     Path(output_path).mkdir(parents=True, exist_ok=True)
-    output_file_name = output_path + "alpaca_after.json"
-    model_name = "/workspace/alignment/data/instruction/"
+    output_file_name = output_path + output_file_name
     device = "cuda"
     seed = 42
     gpu_memory_utilization = 0.9
@@ -261,7 +258,7 @@ def eval_alpaca():
         json.dump(data, fout)
 
 
-# eval_alpaca()
+# eval_alpaca("/alignment/data/instruction/", "alpaca_sft.json")
 
 
 """
@@ -292,12 +289,11 @@ some response are toxic, harmful, etc
 """
 
 
-def eval_sst():
-    data_path = "/workspace/alignment/data/simple_safety_tests/simple_safety_tests.csv"
-    output_path="/workspace/alignment/data/sst_output/"
+def eval_sst(model_name: str, output_file_name: str):
+    data_path = "/alignment/data/simple_safety_tests/simple_safety_tests.csv"
+    output_path="/alignment/data/sst_output/"
     Path(output_path).mkdir(parents=True, exist_ok=True)
-    output_file_name = output_path + "sst_after.json"
-    model_name = "/workspace/alignment/data/instruction/"
+    output_file_name = output_path + output_file_name
     device = "cuda"
     seed = 42
     gpu_memory_utilization = 0.9
@@ -334,7 +330,7 @@ def eval_sst():
     write_jsonl(predictions, output_file_name)
 
 
-# eval_sst()
+# eval_sst("/alignment/data/instruction/", "sst_sft.json")
 
 
 """
