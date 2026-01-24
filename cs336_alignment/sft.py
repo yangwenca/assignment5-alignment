@@ -197,6 +197,7 @@ def training_loop():
                 policy_log_probs=log_probs["log_probs"],
                 response_mask=data["response_mask"][start_idx:start_idx+batch_size],
                 gradient_accumulation_steps=gradient_accumulation_steps,
+                normalize_constant=data["response_mask"].size(-1),
             )
             # print(f"iteration {idx}, loss is {loss}")
         start_idx += batch_size
