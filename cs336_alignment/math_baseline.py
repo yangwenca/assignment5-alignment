@@ -12,14 +12,14 @@ math_baseline
 (b)
 total 1319
 dataset gsm8k test data
-format reward 1 and answer reward 1: 0
-format reward 1 and answer reward 0: 258
+format reward 1 and answer reward 1: 88
+format reward 1 and answer reward 0: 170
 format reward 0 and answer reward 0: 1061
 
 format reward 0, it is due to base model's output
 format reward 1 and answer reward 0: the format is correct, answer is wrong
 (c) did poorly
-{'num_examples': 1319, 'reward': 0.0, 'format_reward': 0.1956027293404094, 'answer_reward': 0.0}
+{'num_examples': 1319, 'reward': 0.0667172100075815, 'format_reward': 0.1956027293404094, 'answer_reward': 0.0667172100075815}
 """
 
 
@@ -55,21 +55,21 @@ def evaluate_vllm(
     reward = 0.0
     format_reward = 0.0
     answer_reward = 0.0
-    # f1a1 = 0
-    # f1a0 = 0
-    # f0a0 = 0
+    f1a1 = 0
+    f1a0 = 0
+    f0a0 = 0
     for i, output in enumerate(generations):
         gen_text = output.outputs[0].text
-        reward_result = reward_fn(gen_text, ground_truth[i])
+        reward_result = reward_fn(gen_text, ground_truth[i], False)
         reward += reward_result["reward"]
         format_reward += reward_result["format_reward"]
         answer_reward += reward_result["answer_reward"]
-        # if reward_result["format_reward"] == 1 and reward_result["answer_reward"] == 1:
-        #     f1a1 += 1
-        # if reward_result["format_reward"] == 1 and reward_result["answer_reward"] == 0:
-        #     f1a0 += 1
-        # if reward_result["format_reward"] == 0 and reward_result["answer_reward"] == 0:
-        #     f0a0 += 1
+        if reward_result["format_reward"] == 1 and reward_result["answer_reward"] == 1:
+            f1a1 += 1
+        if reward_result["format_reward"] == 1 and reward_result["answer_reward"] == 0:
+            f1a0 += 1
+        if reward_result["format_reward"] == 0 and reward_result["answer_reward"] == 0:
+            f0a0 += 1
 
         results.append({
             "prompt": prompts[i],
@@ -99,7 +99,7 @@ def evaluate_vllm(
 
     print("Evaluation complete")
     print(metrics)
-    # print(f1a1, f1a0, f0a0)
+    print(f1a1, f1a0, f0a0)
 
 
 def evaluate(
@@ -108,8 +108,6 @@ def evaluate(
     prompts: List[str],
     ground_truth: List[str],
 ) -> None:
-    print("start running")
-
     # Create a sampling params object, stopping generation on newline.
     sampling_params = SamplingParams(
         temperature=1.0, top_p=1.0, max_tokens=1024, stop=["\n"]
