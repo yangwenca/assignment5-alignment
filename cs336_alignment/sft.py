@@ -1,8 +1,11 @@
 from typing import Callable, Dict
+from unittest.mock import patch
 
 import torch
+from cs336_alignment.math_baseline import eval_data, evaluate, format_prompt, load_file
 from transformers import AutoTokenizer, AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase
 from vllm import LLM
+from vllm.model_executor import set_random_seed as vllm_set_random_seed
 
 """
 uv run pytest -k test_tokenize_prompt_and_output
@@ -17,6 +20,7 @@ def tokenize_prompt_and_output(
     prompt_strs: list[str],
     output_strs: list[str],
     tokenizer: PreTrainedTokenizerBase,
+    device: str = "cpu",
 ) -> dict[str, torch.Tensor]:
     prompt_ids = tokenizer(prompt_strs)['input_ids']
     output_ids = tokenizer(output_strs)['input_ids']
@@ -24,9 +28,9 @@ def tokenize_prompt_and_output(
     max_len = max([len(t) for t in input_ids])
 
     batch_size = len(prompt_strs)
-    ids = torch.zeros((batch_size, max_len - 1), dtype=torch.long)
-    labels = torch.zeros((batch_size, max_len - 1), dtype=torch.long)
-    response_mask = torch.zeros((batch_size, max_len - 1), dtype=torch.bool)
+    ids = torch.zeros((batch_size, max_len - 1), dtype=torch.long, device=device)
+    labels = torch.zeros((batch_size, max_len - 1), dtype=torch.long, device=device)
+    response_mask = torch.zeros((batch_size, max_len - 1), dtype=torch.bool, device=device)
     for idx, input_id in enumerate(input_ids):
         diff = max(0, max_len - len(input_id))
         total = torch.tensor(input_id + [tokenizer.pad_token_id] * diff)
@@ -95,18 +99,12 @@ def sft_microbatch_train_step(
 
 
 def log_generateion(
-    prompt: str,
-    response: str,
-    ground_truth: str,
-    reward_fn: Callable[[str, str], Dict[str, float]],
+    idx: int,
+    loss: float,
 ) -> None:
-    print(f"input prompt is {prompt}")
-    print(f"response is {response}, length is {len(response)}")
-    print(f"ground truth is {ground_truth}")
-    print(f"reward function is {reward_fn}")
+    print(f"at training iteration {idx}, loss is {loss}")
 
 
-from vllm.model_executor import set_random_seed as vllm_set_random_seed
 def init_vllm(model_id: str, device: str, seed: int, gpu_memory_utilization: float = 0.85):
     """
     Start the inference process, here we use vLLM to hold a model on
@@ -145,8 +143,16 @@ def load_policy_into_vllm_instance(policy: PreTrainedModel, llm: LLM):
 
 
 def training_loop():
-    model_name = "Qwen/Qwen2.5-Math-1.5B"
-
+    model_name = "/workspace/huggingface/models--Qwen--Qwen2.5-Math-1.5B/snapshots/4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2"
+    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
+    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
+    output_path="/workspace/alignment/data/sft/"
+    device="cuda"
+    batch_size = 8
+    start_idx = 0
+    training_step = 1000
+    eval_step = 100
+    gradient_accumulation_steps = 8
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
         trust_remote_code=True,
@@ -154,41 +160,64 @@ def training_loop():
 
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.bfloat16,   # or float16
-        device_map="auto",
+        torch_dtype=torch.bfloat16,
+        attn_implementation="flash_attention_2",
         trust_remote_code=True,
+        device_map="auto",
     )
-    def data_loader():
-        return None, None
-    def evaluate_llm(llm: LLM):
-        llm.eval()
 
-    llm_model = init_vllm(model_name, "cuda", 42)
-    gradient_accumulation_steps = 4
-    eval_step = 100
-    optimizer = torch.optim.adam(model.parameter(), lr=0.001)
-    for idx, (prompt_strs, output_strs) in enumerate(data_loader):
-        data = tokenize_prompt_and_output(
-            prompt_strs=prompt_strs,
-            output_strs=output_strs,
-            tokenizer=tokenizer,
-        )
-        log_probs = get_response_log_probs(
-            model=model,
-            input_ids=data["input_ids"],
-            labels=data["labels"],
-            return_token_entropy=True,
-        )
-        train_output = sft_microbatch_train_step(
-            policy_log_probs=log_probs["log_probs"],
-            response_mask=data["response_mask"],
-            gradient_accumulation_steps=gradient_accumulation_steps,
-        )
+    samples = load_file(data_path)
+    total = len(samples)
+    prompts = format_prompt(samples, prompt_path)
+    ground_truth = [sample["answer"] for sample in samples]
 
+    data = tokenize_prompt_and_output(
+        prompt_strs=prompts,
+        output_strs=ground_truth,
+        tokenizer=tokenizer,
+        device=device,
+    )
+
+    eval_prompts, eval_gt = eval_data()
+    llm_model = init_vllm(model_name, device, 42, 0.2)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    for idx in range(training_step):
+        if start_idx + batch_size >= total:
+            start_idx = 0
+        inputs = data["input_ids"][start_idx:start_idx+batch_size]
+        labels = data["labels"][start_idx:start_idx+batch_size]
+        with torch.amp.autocast(device):
+            log_probs = get_response_log_probs(
+                model=model,
+                input_ids=inputs,
+                labels=labels,
+                return_token_entropy=True,
+            )
+            loss, metadata = sft_microbatch_train_step(
+                policy_log_probs=log_probs["log_probs"],
+                response_mask=data["response_mask"][start_idx:start_idx+batch_size],
+                gradient_accumulation_steps=gradient_accumulation_steps,
+            )
+            # print(f"iteration {idx}, loss is {loss}")
+        start_idx += batch_size
         if (idx + 1) % gradient_accumulation_steps == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             optimizer.zero_grad()
+            log_generateion(
+                idx=idx,
+                loss=loss,
+            )
 
         if (idx + 1) % eval_step == 0:
             load_policy_into_vllm_instance(model, llm_model)
-            evaluate_llm(llm_model)
+            evaluate(
+                model=llm_model,
+                output_path=output_path,
+                prompts=eval_prompts,
+                ground_truth=eval_gt,
+            )
+            model.save_pretrained(save_directory=output_path)
+            tokenizer.save_pretrained(save_directory=output_path)
+
+# training_loop()
