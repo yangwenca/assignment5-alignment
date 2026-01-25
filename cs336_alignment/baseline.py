@@ -3,7 +3,7 @@ import json
 import re
 import time
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any
 
 from cs336_alignment.math_baseline import get_data, load_file
 from cs336_alignment.sft import init_vllm
@@ -13,6 +13,9 @@ from vllm import SamplingParams
 uv run pytest -k test_parse_mmlu_response
 uv run pytest -k test_parse_gsm8k_response
 """
+
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 def parse_mmlu_response(
@@ -73,7 +76,7 @@ def load_mmlu_directory(dir_path: str) -> list[dict]:
 def mmlu_format_prompt(
     examples: list[dict],
     prompt_path: str,
-) -> (list[str], list[str]):
+) -> tuple[list[str], list[str]]:
     with open(prompt_path, "r", encoding="utf-8") as f:
         MMLU_PROMPT = f.read()
     questions = [MMLU_PROMPT.format(
@@ -109,9 +112,9 @@ Incorrect both format and anser
 
 
 def analysis_mmlu():
-    data_path = "/workspace/alignment/data/mmlu/val"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/mmlu.prompt"
-    output_path="/workspace/alignment/data/mmlu_output/"
+    data_path = BASE_DIR / "../data/mmlu/val"
+    prompt_path = BASE_DIR / "prompts/mmlu.prompt"
+    output_path = BASE_DIR / "../data/mmlu_output/"
     output_file_name = output_path + "mmlu.json"
     model_name = "/models--Qwen--Qwen2.5-0.5B/snapshots/"
     device = "cuda"
@@ -198,9 +201,9 @@ comparison need to update
 
 
 def analysis_gsm8k():
-    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/gsm8k.prompt"
-    output_path="/workspace/alignment/data/gsm8k_output/"
+    data_path = BASE_DIR / "../data/gsm8k/train.jsonl"
+    prompt_path = BASE_DIR / "prompts/gsm8k.prompt"
+    output_path = BASE_DIR / "../data/gsm8k_output/"
     output_file_name = output_path + "gsm8k.json"
     model_name = "/models--Qwen--Qwen2.5-0.5B/snapshots/"
     device = "cuda"
@@ -266,8 +269,8 @@ can't run alpaca_eval successfully
 
 
 def analysis_alpaca():
-    data_path = "/workspace/alignment/data/alpaca_eval/alpaca_eval.jsonl"
-    output_path="/workspace/alignment/data/alpaca_output/"
+    data_path = BASE_DIR / "../data/alpaca_eval/alpaca_eval.jsonl"
+    output_path = BASE_DIR / "../data/alpaca_output/"
     Path(output_path).mkdir(parents=True, exist_ok=True)
     output_file_name = output_path + "alpaca.json"
     model_name = "/models--Qwen--Qwen2.5-0.5B/snapshots/"
@@ -357,8 +360,8 @@ some response are toxic, harmful, etc
 
 
 def analysis_sst():
-    data_path = "/workspace/alignment/data/simple_safety_tests/simple_safety_tests.csv"
-    output_path="/workspace/alignment/data/sst_output/"
+    data_path = BASE_DIR / "../data/simple_safety_tests/simple_safety_tests.csv"
+    output_path = BASE_DIR / "../data/sst_output/"
     Path(output_path).mkdir(parents=True, exist_ok=True)
     output_file_name = output_path + "sst.json"
     model_name = "/models--Qwen--Qwen2.5-0.5B/snapshots/"

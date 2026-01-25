@@ -1,11 +1,13 @@
 import json
 import os
-import re
+from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
 from cs336_alignment.drgrpo_grader import r1_zero_reward_fn
 from vllm import LLM, SamplingParams
 
+
+BASE_DIR = Path(__file__).resolve().parent
 
 """
 math_baseline
@@ -134,19 +136,19 @@ def get_data(data_path: str, prompt_path: str) -> Tuple[List[str], List[str]]:
 
 
 def eval_data() -> Tuple[List[str], List[str]]:
-    data_path = "/workspace/alignment/data/gsm8k/test.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
+    data_path = BASE_DIR / "../data/gsm8k/test.jsonl"
+    prompt_path = BASE_DIR / "prompts/r1_zero.prompt"
     return get_data(data_path, prompt_path)
 
 
 def train_data() -> Tuple[List[str], List[str]]:
-    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
+    data_path = BASE_DIR / "../data/gsm8k/train.jsonl"
+    prompt_path = BASE_DIR / "prompts/r1_zero.prompt"
     return get_data(data_path, prompt_path)
 
 
 def main() -> None:
-    output_path = "/workspace/alignment/data/output/"
+    output_path = BASE_DIR / "../data/output/"
     model_name = "/workspace/huggingface/models--Qwen--Qwen2.5-Math-1.5B/snapshots/4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2"
     model = LLM(model_name)
     prompts, gt = eval_data()

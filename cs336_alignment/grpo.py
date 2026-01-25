@@ -1,10 +1,15 @@
-from typing import Callable, Dict, List, Literal, Tuple
+from pathlib import Path
+from typing import Callable, List, Literal, Tuple
 
 import torch
 from cs336_alignment.drgrpo_grader import question_only_reward_fn, r1_zero_reward_fn
 from cs336_alignment.sft import *
 from cs336_alignment.math_baseline import eval_data, get_data, train_data
 from vllm import SamplingParams
+
+
+BASE_DIR = Path(__file__).resolve().parent
+
 
 """
 uv run pytest -k test_compute_group_normalized_rewards
@@ -310,14 +315,14 @@ def grpo_microbatch_train_step(
 
 
 def eval_data_question() -> Tuple[List[str], List[str]]:
-    data_path = "/workspace/alignment/data/gsm8k/test.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/question_only.prompt"
+    data_path = BASE_DIR / "../data/gsm8k/test.jsonl"
+    prompt_path = BASE_DIR / "prompts/question_only.prompt"
     return get_data(data_path, prompt_path)
 
 
 def train_data_question() -> Tuple[List[str], List[str]]:
-    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/question_only.prompt"
+    data_path = BASE_DIR / "../data/gsm8k/train.jsonl"
+    prompt_path = BASE_DIR / "prompts/question_only.prompt"
     return get_data(data_path, prompt_path)
 
 
@@ -328,7 +333,7 @@ def train(
     use_question_prompt: bool = False,
 ) -> None:
     model_name = "/workspace/huggingface/models--Qwen--Qwen2.5-Math-1.5B/snapshots/4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2"
-    output_path="/workspace/alignment/data/grpo/"
+    output_path = BASE_DIR / "../data/grpo/"
     device = "cuda"
     seed = 42
     torch.manual_seed(seed)

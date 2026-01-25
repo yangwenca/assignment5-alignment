@@ -2,6 +2,7 @@ import copy
 import gzip
 import json
 import random
+from pathlib import Path
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, PreTrainedTokenizerBase
@@ -23,6 +24,8 @@ Assistant: Sure, what's your question?',
 Assistant: I'm sorry, I'm not able to provide Senator Warren's home address to you.', 'category': 'harmless'}
 """
 
+BASE_DIR = Path(__file__).resolve().parent
+
 
 def load_all_jsonl_gz(path: set, category: str):
     with gzip.open(path, "rt", encoding="utf-8") as f:
@@ -33,10 +36,10 @@ def load_all_jsonl_gz(path: set, category: str):
 
 
 def load_file() -> list[dict[str, str]]:
-    harmless_path = "/workspace/alignment/data/dpo/harmless-base.jsonl.gz"
-    helpful_base_path = "/workspace/alignment/data/dpo/helpful-base.jsonl.gz"
-    helpful_online_path = "/workspace/alignment/data/dpo/helpful-online.jsonl.gz"
-    helpful_rejection_path = "/workspace/alignment/data/dpo/helpful-rejection-sampled.jsonl.gz"
+    harmless_path = BASE_DIR / "../data/dpo/harmless-base.jsonl.gz"
+    helpful_base_path = BASE_DIR / "../data/dpo/helpful-base.jsonl.gz"
+    helpful_online_path = BASE_DIR / "../data/dpo/helpful-online.jsonl.gz"
+    helpful_rejection_path = BASE_DIR / "../data/dpo/helpful-rejection-sampled.jsonl.gz"
     data = load_all_jsonl_gz(harmless_path, "harmless")
     data.extend(load_all_jsonl_gz(helpful_base_path, "helpful_base"))
     data.extend(load_all_jsonl_gz(helpful_online_path, "helpful_online"))
@@ -81,7 +84,7 @@ def get_token(
     response_rejected: str,
     device: torch.device,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/alpaca_sft.prompt"
+    prompt_path = BASE_DIR / "prompts/alpaca_sft.prompt"
     with open(prompt_path, "r", encoding="utf-8") as f:
         template = f.read()
     eos_token = tokenizer.eos_token
@@ -155,7 +158,7 @@ def compute_log_prob(
 
 def train_dpo():
     model_name = "/models--Qwen--Qwen2.5-0.5B/snapshots/"
-    output_path="/workspace/alignment/data/dpo_model/"
+    output_path= BASE_DIR / "../data/dpo_model/"
     device = "cuda"
     seed = 42
     random.seed(seed)
@@ -282,7 +285,7 @@ gsm8k data: total is 7473, correct is 977, rate is 13.073732102234711
 """
 
 
-model_name = "/workspace/alignment/data/dpo_model/"
+model_name = BASE_DIR / "../data/dpo_model/"
 # eval_alpaca(model_name, "alpaca_dpo.json")
 # eval_gsm8k(model_name, "gsm8k_dpo.json")
 # eval_mmlu(model_name, "mmlu_dpo.json")

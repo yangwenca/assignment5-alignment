@@ -1,9 +1,13 @@
 import json
 import random
+from pathlib import Path
 
 import torch
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, get_cosine_schedule_with_warmup
+
+
+BASE_DIR = Path(__file__).resolve().parent
 
 """
 look_at_sft
@@ -21,7 +25,7 @@ class InstructionDataset(Dataset):
         self.tokenizer = tokenizer
         self.seq_length = seq_length
         # need to delete the last line in prompt; otherwise, can't pass the test case
-        prompt_path = "/workspace/alignment/cs336_alignment/prompts/alpaca_sft.prompt"
+        prompt_path = BASE_DIR / "prompts/alpaca_sft.prompt"
         with open(prompt_path, "r", encoding="utf-8") as f:
             prompt = f.read()
 
@@ -80,9 +84,9 @@ def iterate_batches(
 
 def train():
     model_name = "/models--Qwen--Qwen2.5-0.5B/snapshots/"
-    output_path="/workspace/alignment/data/instruction/"
-    train_data_path = "/workspace/alignment/data/alignment/train.jsonl"
-    eval_data_path = "/workspace/alignment/data/alignment/test.jsonl"
+    output_path = BASE_DIR / "../data/instruction/"
+    train_data_path = BASE_DIR / "../data/alignment/train.jsonl"
+    eval_data_path = BASE_DIR / "../data/alignment/test.jsonl"
     device = "cuda"
     seed = 42
     torch.manual_seed(seed)

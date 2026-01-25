@@ -1,4 +1,3 @@
-from typing import Callable, Dict
 from unittest.mock import patch
 
 import torch
@@ -143,10 +142,12 @@ def load_policy_into_vllm_instance(policy: PreTrainedModel, llm: LLM):
 
 
 def training_loop():
+    from pathlib import Path
+    BASE_DIR = Path(__file__).resolve().parent
     model_name = "/workspace/huggingface/models--Qwen--Qwen2.5-Math-1.5B/snapshots/4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2"
-    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
-    output_path="/workspace/alignment/data/sft/"
+    data_path = BASE_DIR / "../data/gsm8k/train.jsonl"
+    prompt_path = BASE_DIR / "prompts/r1_zero.prompt"
+    output_path = BASE_DIR / "../data/sft/"
     device="cuda"
     batch_size = 8
     start_idx = 0
