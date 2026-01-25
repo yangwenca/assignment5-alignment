@@ -25,7 +25,7 @@ class InstructionDataset(Dataset):
         self.tokenizer = tokenizer
         self.seq_length = seq_length
         # need to delete the last line in prompt; otherwise, can't pass the test case
-        prompt_path = BASE_DIR / "prompts" / "alpaca_sft.prompt"
+        prompt_path = BASE_DIR / "prompts/alpaca_sft.prompt"
         with open(prompt_path, "r", encoding="utf-8") as f:
             prompt = f.read()
 
