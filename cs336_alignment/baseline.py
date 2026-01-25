@@ -73,7 +73,7 @@ def load_mmlu_directory(dir_path: str) -> list[dict]:
 def mmlu_format_prompt(
     examples: list[dict],
     prompt_path: str,
-) -> (list[str], list[str]):
+) -> tuple[list[str], list[str]]:
     with open(prompt_path, "r", encoding="utf-8") as f:
         MMLU_PROMPT = f.read()
     questions = [MMLU_PROMPT.format(

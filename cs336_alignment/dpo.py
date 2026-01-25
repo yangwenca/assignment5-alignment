@@ -81,7 +81,9 @@ def get_token(
     response_rejected: str,
     device: torch.device,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/alpaca_sft.prompt"
+    from pathlib import Path
+    BASE_DIR = Path(__file__).resolve().parent
+    prompt_path = BASE_DIR / "prompts" / "alpaca_sft.prompt"
     with open(prompt_path, "r", encoding="utf-8") as f:
         template = f.read()
     eos_token = tokenizer.eos_token
