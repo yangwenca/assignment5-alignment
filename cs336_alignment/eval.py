@@ -1,7 +1,6 @@
 import json
 import time
 from pathlib import Path
-from typing import Any, Callable, Literal
 
 from cs336_alignment.baseline import load_csv, load_mmlu_directory, mmlu_format_prompt, parse_gsm8k_response, parse_mmlu_response, write_jsonl
 from cs336_alignment.math_baseline import get_data, load_file
@@ -9,8 +8,11 @@ from cs336_alignment.sft import init_vllm
 from vllm import SamplingParams
 
 
+BASE_DIR = Path(__file__).resolve().parent
+
+
 def parse_sft_prompt(prompts: list[str]) -> list[str]:
-    sft_prompt_path = "/alignment/cs336_alignment/prompts/alpaca_sft.prompt"
+    sft_prompt_path = BASE_DIR / "prompts/alpaca_sft.prompt"
     with open(sft_prompt_path, "r", encoding="utf-8") as f:
         SFT_PROMPT = f.read()
     ans = [SFT_PROMPT.format(
@@ -49,9 +51,9 @@ Most of outputs are able to give correct format.
 
 
 def eval_mmlu(model_name: str, output_file_name: str):
-    data_path = "/alignment/data/mmlu/val"
-    prompt_path = "/alignment/cs336_alignment/prompts/mmlu.prompt"
-    output_path="/alignment/data/mmlu_output/"
+    data_path = BASE_DIR / "../data/mmlu/val"
+    prompt_path = BASE_DIR / "prompts/mmlu.prompt"
+    output_path = BASE_DIR / "../data/mmlu_output/"
     output_file_name = output_path + output_file_name
     device = "cuda"
     seed = 42
@@ -100,7 +102,7 @@ def eval_mmlu(model_name: str, output_file_name: str):
     print(f"mmlu data: total is {total}, correct is {correct}, rate is {correct / total * 100}")
 
 
-# eval_mmlu("/alignment/data/instruction/", "mmlu_sft.json")
+# eval_mmlu(BASE_DIR / "../data/instruction/", "mmlu_sft.json")
 
 
 """
@@ -144,9 +146,9 @@ But it is not able to answer more questions. Seems like sft is hurting
 
 
 def eval_gsm8k(model_name: str, output_file_name: str):
-    data_path = "/alignment/data/gsm8k/train.jsonl"
-    prompt_path = "/alignment/cs336_alignment/prompts/gsm8k.prompt"
-    output_path="/alignment/data/gsm8k_output/"
+    data_path = BASE_DIR / "../data/gsm8k/train.jsonl"
+    prompt_path = BASE_DIR / "prompts/gsm8k.prompt"
+    output_path = BASE_DIR / "../data/gsm8k_output/"
     output_file_name = output_path + output_file_name
     device = "cuda"
     seed = 42
@@ -196,7 +198,7 @@ def eval_gsm8k(model_name: str, output_file_name: str):
     print(f"gsm8k data: total is {total}, correct is {correct}, rate is {correct / total * 100}")
 
 
-# eval_gsm8k("/alignment/data/instruction/", "gsm8k_sft.json")
+# eval_gsm8k(BASE_DIR / "../data/instruction/", "gsm8k_sft.json")
 
 
 """
@@ -219,8 +221,8 @@ can't run alpaca_eval successfully
 
 
 def eval_alpaca(model_name: str, output_file_name: str):
-    data_path = "/alignment/data/alpaca_eval/alpaca_eval.jsonl"
-    output_path="/alignment/data/alpaca_output/"
+    data_path = BASE_DIR / "../data/alpaca_eval/alpaca_eval.jsonl"
+    output_path = BASE_DIR / "../data/alpaca_output/"
     Path(output_path).mkdir(parents=True, exist_ok=True)
     output_file_name = output_path + output_file_name
     device = "cuda"
@@ -258,7 +260,7 @@ def eval_alpaca(model_name: str, output_file_name: str):
         json.dump(data, fout)
 
 
-# eval_alpaca("/alignment/data/instruction/", "alpaca_sft.json")
+# eval_alpaca(BASE_DIR / "../data/instruction/", "alpaca_sft.json")
 
 
 """
@@ -290,8 +292,8 @@ some response are toxic, harmful, etc
 
 
 def eval_sst(model_name: str, output_file_name: str):
-    data_path = "/alignment/data/simple_safety_tests/simple_safety_tests.csv"
-    output_path="/alignment/data/sst_output/"
+    data_path = BASE_DIR / "../data/simple_safety_tests/simple_safety_tests.csv"
+    output_path = BASE_DIR / "../data/sst_output/"
     Path(output_path).mkdir(parents=True, exist_ok=True)
     output_file_name = output_path + output_file_name
     device = "cuda"
@@ -330,7 +332,7 @@ def eval_sst(model_name: str, output_file_name: str):
     write_jsonl(predictions, output_file_name)
 
 
-# eval_sst("/alignment/data/instruction/", "sst_sft.json")
+# eval_sst(BASE_DIR / "../data/instruction/", "sst_sft.json")
 
 
 """

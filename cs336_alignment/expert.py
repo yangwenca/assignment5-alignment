@@ -1,3 +1,4 @@
+from pathlib import Path
 
 import random
 import torch
@@ -6,11 +7,14 @@ from cs336_alignment.drgrpo_grader import r1_zero_reward_fn
 from cs336_alignment.sft import *
 
 
+BASE_DIR = Path(__file__).resolve().parent
+
+
 def expert_iteration():
     model_name = "/workspace/huggingface/models--Qwen--Qwen2.5-Math-1.5B/snapshots/4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2"
-    data_path = "/workspace/alignment/data/gsm8k/train.jsonl"
-    prompt_path = "/workspace/alignment/cs336_alignment/prompts/r1_zero.prompt"
-    output_path="/workspace/alignment/data/expert/"
+    data_path = BASE_DIR / "../data/gsm8k/train.jsonl"
+    prompt_path = BASE_DIR / "prompts/r1_zero.prompt"
+    output_path = BASE_DIR / "../data/expert/"
     device="cuda"
     expert_batch_size = 24
     train_batch_size = 8
