@@ -2,7 +2,7 @@ import json
 import time
 from pathlib import Path
 
-from cs336_alignment.baseline import load_csv, load_mmlu_directory, mmlu_format_prompt, parse_gsm8k_response, parse_mmlu_response, write_jsonl
+from cs336_alignment.safety_baseline import load_csv, load_mmlu_directory, mmlu_format_prompt, parse_gsm8k_response, parse_mmlu_response, write_jsonl
 from cs336_alignment.math_baseline import get_data, load_file
 from cs336_alignment.sft import init_vllm
 from vllm import SamplingParams

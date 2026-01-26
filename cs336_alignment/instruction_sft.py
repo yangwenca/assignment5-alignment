@@ -143,7 +143,7 @@ def train():
         num_training_steps=total_steps,
     )
     model.train()
-    for epoch_idx in range(epoches):
+    for _ in range(epoches):
         for idx, data in enumerate(train_dataloader):
             inputs = data['input_ids'].to(device)
             targets = data['labels'].to(device)

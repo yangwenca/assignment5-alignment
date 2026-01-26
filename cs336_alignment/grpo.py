@@ -359,8 +359,6 @@ def train(
         eval_prompts, eval_gt = eval_data()
     total = len(train_prompts)
 
-    llm_model = init_vllm(model_name, device, seed, 0.2)
-
     n_grpo_steps: int = 200
     eval_step: int = 20
     learning_rate: float = 1e-5
@@ -394,6 +392,7 @@ def train(
     )
     n_microbatches_per_rollout_batch = rollout_batch_size // micro_train_batch_size
 
+    llm_model = init_vllm(model_name, device, seed, gpu_memory_utilization)
     expert_sampling_params = SamplingParams(
         temperature=sampling_temperature,
         top_p=1.0,

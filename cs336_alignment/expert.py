@@ -69,7 +69,7 @@ def expert_iteration():
         seed=seed,
     )
     samples = [i for i in range(len(prompts))]
-    for ei_idx in range(expert_iteration):
+    for _ in range(expert_iteration):
         training_data = []
         load_policy_into_vllm_instance(model, llm_model)
         while len(training_data) < 32:
