@@ -8,12 +8,12 @@ from torch import Tensor
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizerBase
 
-from cs336_alignment.baseline import *
+from cs336_alignment.safety_baseline import *
 from cs336_alignment.dpo import compute_per_instance_dpo_loss
 from cs336_alignment.grpo import compute_group_normalized_rewards, compute_grpo_clip_loss
 from cs336_alignment.grpo import compute_naive_policy_gradient_loss, compute_policy_gradient_loss
 from cs336_alignment.grpo import grpo_microbatch_train_step, masked_mean
-from cs336_alignment.instruction import *
+from cs336_alignment.instruction_sft import *
 from cs336_alignment.sft import compute_entropy, get_response_log_probs, masked_normalize
 from cs336_alignment.sft import sft_microbatch_train_step, tokenize_prompt_and_output
 

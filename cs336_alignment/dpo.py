@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, PreTrainedTokenizerBase
-from cs336_alignment.eval import eval_alpaca, eval_gsm8k, eval_mmlu, eval_sst
+from cs336_alignment.eval_safety import eval_alpaca, eval_gsm8k, eval_mmlu, eval_sst
 
 """
 look_at_hh
@@ -64,7 +64,6 @@ def parse_example(examples: list[dict[str, str]]) -> list[dict[str, str]]:
         chosen = example["chosen"]
         reject = example["rejected"]
         if single_turn(chosen) and single_turn(reject):
-            data = []
             human_chosen, assist_chosen = parse_conversion(chosen)
             human_reject, assist_reject = parse_conversion(reject)
             assert human_chosen == human_reject, print(chosen, reject)
@@ -159,7 +158,6 @@ def compute_log_prob(
 def train_dpo():
     model_name = "/models--Qwen--Qwen2.5-0.5B/snapshots/"
     output_path= BASE_DIR / "../data/dpo_model/"
-    device = "cuda"
     seed = 42
     random.seed(seed)
     torch.manual_seed(seed)
@@ -175,7 +173,6 @@ def train_dpo():
     learning_rate = 1e-6
     grad_clip = 1.0
     gradient_accumulation_steps = 64
-    warmup_percentage = 0.03
     eval_step = 20 * gradient_accumulation_steps
     beta = 0.1
     # model
@@ -204,7 +201,7 @@ def train_dpo():
     )
     total_steps = total_train_steps
     model.train()
-    for epoch_idx in range(epoches):
+    for _ in range(epoches):
         for idx, data in enumerate(train_data):
             loss = compute_per_instance_dpo_loss(
                 lm=model,
